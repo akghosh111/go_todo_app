@@ -76,6 +76,42 @@ func todosHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func todoByIdHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Path[len("/todos/"):]
+
+	todoMutex.Lock()
+	defer todoMutex.Unlock()
+
+	for i, todo := range todos {
+		if todo.Id == id {
+			switch r.Method {
+			case "GET":
+				w.Header().Set("Content-Type", "application/json")
+				json.NewEncoder(w).Encode(todo)
+			case "PUT":
+				var updatedTodo Todo
+				body, err := ioutil.ReadAll(r.Body)
+
+				if err != nil {
+					http.Error(w, "Unable to read from request body", http.StatusBadRequest)
+					return
+				}
+
+				err = json.Unmarshal(body, &updatedTodo)
+
+				if err != nil || updatedTodo.Task == "" {
+					http.Error(w, "Invalid input", http.StatusBadRequest)
+					return
+				}
+
+				todos[i].Task = updatedTodo.Task
+				todos[i].Completed = updatedTodo.Completed
+
+				json.NewEncoder(w).Encode(todos[i])
+			case "DELETE":
+			default:
+			}
+		}
+	}
 
 }
 
