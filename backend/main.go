@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 type Todo struct {
@@ -23,6 +25,10 @@ var (
 	todos     []Todo
 	todoMutex sync.Mutex
 )
+
+func generateRandomId() string {
+	return uuid.New().String()
+}
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
 	health := HealthResponse{
@@ -52,6 +58,15 @@ func todosHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "No inputs found", http.StatusBadRequest)
 			return
 		}
+
+		newTodo.Id = generateRandomId()
+
+		todoMutex.Lock()
+		todos = append(todos, newTodo)
+		todoMutex.Unlock()
+
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(newTodo)
 	default:
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
