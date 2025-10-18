@@ -108,7 +108,14 @@ func todoByIdHandler(w http.ResponseWriter, r *http.Request) {
 
 				json.NewEncoder(w).Encode(todos[i])
 			case "DELETE":
+				deletedTodoId := todo.Id
+				todos = append(todos[:i], todos[i+1:]...)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(map[string]string{"message": "Todo with Id" + deletedTodoId + "is successfully deleted"})
+
 			default:
+				http.Error(w, "Method not allowed", http.StatusBadRequest)
 			}
 		}
 	}
