@@ -40,9 +40,11 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func todosHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Println(r.Method)
+	// fmt.Println(r.Method)
 	switch r.Method {
 	case "GET":
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(todos)
 	case "POST":
 		var newTodo Todo
 		body, err := ioutil.ReadAll(r.Body)
@@ -52,7 +54,7 @@ func todosHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println(body)
+		// fmt.Println(body)
 		err = json.Unmarshal(body, &newTodo)
 		if err != nil || newTodo.Task == "" {
 			http.Error(w, "No inputs found", http.StatusBadRequest)
